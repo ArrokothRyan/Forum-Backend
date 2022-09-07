@@ -175,7 +175,8 @@ func (server *Server) UpdateAvatar(c *gin.Context) {
 		})
 		return
 	}
-	uploadedFile, fileErr := fileupload.FileUpload.UploadFile(file)
+
+	uploadedFile, fileErr := fileupload.FileUpload.UploadFile(c, file)
 	if fileErr != nil {
 		c.JSON(http.StatusUnprocessableEntity, fileErr)
 		return

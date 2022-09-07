@@ -1,28 +1,23 @@
 package fileupload
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/minio/minio-go/v6"
-	"log"
+	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strings"
 )
 
 type fileUpload struct{}
 
 type UploadFileInterface interface {
-	UploadFile(file *multipart.FileHeader) (string, map[string]string)
+	UploadFile(c *gin.Context, file *multipart.FileHeader) (string, map[string]string)
 }
 
 //So what is exposed is Uploader
 var FileUpload UploadFileInterface = &fileUpload{}
 
-
-func (fu *fileUpload) UploadFile(file *multipart.FileHeader) (string, map[string]string) {
-
+func (fu *fileUpload) UploadFile(c *gin.Context, file *multipart.FileHeader) (string, map[string]string) {
 	errList := map[string]string{}
 
 	f, err := file.Open()
@@ -52,26 +47,11 @@ func (fu *fileUpload) UploadFile(file *multipart.FileHeader) (string, map[string
 	}
 	filePath := FormatFile(file.Filename)
 
-	accessKey := os.Getenv("DO_SPACES_KEY")
-	secKey := os.Getenv("DO_SPACES_SECRET")
-	endpoint := os.Getenv("DO_SPACES_ENDPOINT")
-	ssl := true
-
-	// Initiate a client using DigitalOcean Spaces.
-	client, err := minio.New(endpoint, accessKey, secKey, ssl)
+	err = c.SaveUploadedFile(file, "upload/"+filePath)
 	if err != nil {
-		log.Fatal(err)
-	}
-	fileBytes := bytes.NewReader(buffer)
-	cacheControl := "max-age=31536000"
-	// make it public
-	userMetaData := map[string]string{"x-amz-acl": "public-read"}
-	n, err := client.PutObject("chodapi", filePath, fileBytes, size, minio.PutObjectOptions{ContentType: fileType, CacheControl: cacheControl, UserMetadata: userMetaData})
-	if err != nil {
-		fmt.Println("the error", err)
 		errList["Other_Err"] = "something went wrong"
 		return "", errList
 	}
-	fmt.Println("Successfully uploaded bytes: ", n)
+
 	return filePath, nil
 }

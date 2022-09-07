@@ -5,3 +5,4 @@ docker-compose*
 forum # Dont push the local binary
 .DS_Store
 
+upload/*

@@ -6,6 +6,7 @@ import (
 
 func (s *Server) initializeRoutes() {
 
+	s.Router.Static("/upload", "./upload")
 	v1 := s.Router.Group("/api/v1")
 	{
 		// Login Route
